@@ -2,6 +2,7 @@ package be.leuven.leuvengo.web;
 
 import be.leuven.leuvengo.domain.PendingReport;
 import be.leuven.leuvengo.repository.PendingReportRepository;
+import be.leuven.leuvengo.service.ReportService;
 import com.twilio.twiml.MessagingResponse;
 import com.twilio.twiml.messaging.Message;
 import org.slf4j.Logger;
@@ -12,7 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
+import java.util.HexFormat;
 import java.util.Optional;
 
 /**
@@ -36,9 +40,12 @@ public class WhatsAppController {
     private static final int MOCK_SCORE = 3;
 
     private final PendingReportRepository pending;
+    private final ReportService reportService;
 
-    public WhatsAppController(PendingReportRepository pending) {
+    public WhatsAppController(PendingReportRepository pending,
+                              ReportService reportService) {
         this.pending = pending;
+        this.reportService = reportService;
     }
 
     @PostMapping(value = "/webhook", produces = MediaType.APPLICATION_XML_VALUE)
@@ -94,8 +101,37 @@ public class WhatsAppController {
         pr.setCompleted(true);
         pending.save(pr);
 
+        // Push the WhatsApp report into the same pipeline used by the in-app
+        // reporter so it shows up on the pro/student dashboard maps, ticks
+        // the city KPIs and (if threshold crossed) auto-dispatches a Planon
+        // work order. Phone number is hashed — we never persist PII.
+        try {
+            reportService.submit(new ReportService.Submission(
+                    pr.getLat(), pr.getLng(), MOCK_SCORE,
+                    "WhatsApp report",
+                    mediaUrl,
+                    "whatsapp",
+                    null,
+                    pseudoIdFor(from)
+            ));
+        } catch (Exception ex) {
+            log.warn("Failed to ingest WhatsApp report into pipeline", ex);
+        }
+
         return reply("Report received! Cleanliness level: " + MOCK_SCORE
                 + ". Our crews are on it!");
+    }
+
+    /** GDPR-friendly: never persist the raw WhatsApp number. */
+    private static String pseudoIdFor(String from) {
+        if (from == null) return "wa-anon";
+        try {
+            byte[] hash = MessageDigest.getInstance("SHA-1")
+                    .digest(from.getBytes());
+            return "wa-" + HexFormat.of().formatHex(hash).substring(0, 8);
+        } catch (NoSuchAlgorithmException e) {
+            return "wa-anon";
+        }
     }
 
     private String reply(String text) {

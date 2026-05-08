@@ -3,8 +3,9 @@ import { useApi } from "../hooks/useApi";
 import { api } from "../api/client";
 
 export default function LandingPage() {
-  const { data: stats } = useApi(() => api.stats(), []);
-  const { data: leaderboard } = useApi(() => api.leaderboard(), []);
+  const POLL = { pollMs: 10000 };
+  const { data: stats } = useApi(() => api.stats(), [], POLL);
+  const { data: leaderboard } = useApi(() => api.leaderboard(), [], POLL);
   const top = leaderboard?.[0];
 
   return (

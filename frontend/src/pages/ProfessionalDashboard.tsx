@@ -8,10 +8,11 @@ import { ScoreChip } from "../components/ScoreChip";
 import { StatusTag } from "../components/StatusTag";
 
 export default function ProfessionalDashboard() {
-  const stats = useApi(() => api.stats(), []);
-  const hotspots = useApi(() => api.hotspots(), []);
-  const segments = useApi(() => api.segments(), []);
-  const orders = useApi(() => api.workOrders(), []);
+  const POLL = { pollMs: 5000 };
+  const stats = useApi(() => api.stats(), [], POLL);
+  const hotspots = useApi(() => api.hotspots(), [], POLL);
+  const segments = useApi(() => api.segments(), [], POLL);
+  const orders = useApi(() => api.workOrders(), [], POLL);
   const [district, setDistrict] = useState<string>("ALL");
 
   const districts = useMemo(() => {

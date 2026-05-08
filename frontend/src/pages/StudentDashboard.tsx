@@ -6,10 +6,11 @@ import { StudentMap } from "../components/Map/StudentMap";
 import { ScoreChip } from "../components/ScoreChip";
 
 export default function StudentDashboard() {
-  const faculties = useApi(() => api.faculties(), []);
-  const segments = useApi(() => api.segments(), []);
-  const hotspots = useApi(() => api.hotspots(), []);
-  const leaderboard = useApi(() => api.leaderboard(), []);
+  const POLL = { pollMs: 8000 };
+  const faculties = useApi(() => api.faculties(), [], POLL);
+  const segments = useApi(() => api.segments(), [], POLL);
+  const hotspots = useApi(() => api.hotspots(), [], POLL);
+  const leaderboard = useApi(() => api.leaderboard(), [], POLL);
   const [selected, setSelected] = useState<string | undefined>(undefined);
 
   const myFaculty = selected
