@@ -1,4 +1,5 @@
 import type {
+  AuthUser,
   CityConfig,
   CreateReportPayload,
   FacultyDto,
@@ -12,6 +13,16 @@ import type {
 } from "./types";
 
 const BASE = "/api";
+const AUTH_KEY = "auth_user";
+
+function storedToken(): string | null {
+  try {
+    const raw = localStorage.getItem(AUTH_KEY);
+    return raw ? (JSON.parse(raw) as AuthUser).token : null;
+  } catch {
+    return null;
+  }
+}
 
 async function request<T>(
   path: string,
@@ -23,13 +34,29 @@ async function request<T>(
     headers.set("Content-Type", "application/json");
     body = JSON.stringify(init.json);
   }
+  const token = storedToken();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
   const res = await fetch(`${BASE}${path}`, { ...init, headers, body });
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  if (!res.ok) {
+    let message = `${res.status} ${res.statusText}`;
+    try {
+      const err = (await res.json()) as { message?: string };
+      if (err.message) message = err.message;
+    } catch { /* use default */ }
+    throw new Error(message);
+  }
   if (res.status === 204) return undefined as T;
   return (await res.json()) as T;
 }
 
 export const api = {
+  register: (email: string, password: string, facultyShortCode?: string) =>
+    request<AuthUser>("/auth/register", { method: "POST", json: { email, password, facultyShortCode } }),
+  login: (email: string, password: string) =>
+    request<AuthUser>("/auth/login", { method: "POST", json: { email, password } }),
+  me: () => request<AuthUser>("/auth/me"),
+  logout: () => request<void>("/auth/logout", { method: "POST" }),
+
   city: () => request<CityConfig>("/stats/city"),
   stats: () => request<StatsDto>("/stats"),
   reports: () => request<ReportDto[]>("/reports/recent"),

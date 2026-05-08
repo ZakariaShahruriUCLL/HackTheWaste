@@ -4,6 +4,7 @@ import be.leuven.leuvengo.domain.Hotspot;
 import be.leuven.leuvengo.domain.WorkOrder;
 import be.leuven.leuvengo.repository.HotspotRepository;
 import be.leuven.leuvengo.repository.WorkOrderRepository;
+import be.leuven.leuvengo.service.AuthService;
 import be.leuven.leuvengo.service.PlanonService;
 import be.leuven.leuvengo.web.dto.Dtos;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +21,16 @@ public class WorkOrderController {
     private final WorkOrderRepository workOrders;
     private final HotspotRepository hotspots;
     private final PlanonService planon;
+    private final AuthService authService;
 
     public WorkOrderController(WorkOrderRepository workOrders,
                                HotspotRepository hotspots,
-                               PlanonService planon) {
+                               PlanonService planon,
+                               AuthService authService) {
         this.workOrders = workOrders;
         this.hotspots = hotspots;
         this.planon = planon;
+        this.authService = authService;
     }
 
     @GetMapping
@@ -37,7 +41,10 @@ public class WorkOrderController {
 
     @PostMapping("/{id}/complete")
     @Transactional
-    public ResponseEntity<Dtos.WorkOrderDto> complete(@PathVariable Long id) {
+    public ResponseEntity<Dtos.WorkOrderDto> complete(
+            @RequestHeader(value = "Authorization", required = false) String auth,
+            @PathVariable Long id) {
+        authService.requireAuth(auth);
         WorkOrder w = workOrders.findById(id).orElseThrow();
         w.setStatus(WorkOrder.Status.COMPLETED);
         w.setCompletedAt(Instant.now());
@@ -51,7 +58,10 @@ public class WorkOrderController {
     }
 
     @PostMapping("/dispatch/{hotspotId}")
-    public ResponseEntity<Dtos.WorkOrderDto> manualDispatch(@PathVariable Long hotspotId) {
+    public ResponseEntity<Dtos.WorkOrderDto> manualDispatch(
+            @RequestHeader(value = "Authorization", required = false) String auth,
+            @PathVariable Long hotspotId) {
+        authService.requireAuth(auth);
         Hotspot h = hotspots.findById(hotspotId).orElseThrow();
         return ResponseEntity.ok(Dtos.of(planon.dispatch(h)));
     }

@@ -6,7 +6,11 @@ import ReportPage from "./pages/ReportPage";
 import MarketplacePage from "./pages/MarketplacePage";
 import OperationsPage from "./pages/OperationsPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
+import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
 import { TopBar } from "./components/TopBar";
+import { AuthProvider } from "./context/AuthContext";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export default function App() {
   const location = useLocation();
@@ -21,23 +25,27 @@ export default function App() {
       : "";
 
   return (
-    <div className={`app-shell ${themeClass}`}>
-      <TopBar />
-      <main style={{ flex: 1 }}>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/pro" element={<ProfessionalDashboard />} />
-          <Route path="/pro/operations" element={<OperationsPage />} />
-          <Route path="/student" element={<StudentDashboard />} />
-          <Route path="/student/leaderboard" element={<LeaderboardPage />} />
-          <Route path="/report" element={<ReportPage />} />
-          <Route path="/market" element={<MarketplacePage />} />
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </main>
-      <footer className="app-footer">
-        © 2026 ReCode
-      </footer>
-    </div>
+    <AuthProvider>
+      <div className={`app-shell ${themeClass}`}>
+        <TopBar />
+        <main style={{ flex: 1 }}>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/pro" element={<ProfessionalDashboard />} />
+            <Route path="/pro/operations" element={<ProtectedRoute><OperationsPage /></ProtectedRoute>} />
+            <Route path="/student" element={<StudentDashboard />} />
+            <Route path="/student/leaderboard" element={<LeaderboardPage />} />
+            <Route path="/report" element={<ProtectedRoute><ReportPage /></ProtectedRoute>} />
+            <Route path="/market" element={<MarketplacePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </main>
+        <footer className="app-footer">
+          © 2026 ReCode
+        </footer>
+      </div>
+    </AuthProvider>
   );
 }

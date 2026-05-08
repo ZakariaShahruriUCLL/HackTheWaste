@@ -109,6 +109,13 @@ export interface CityConfig {
   workOrderThreshold: number;
 }
 
+export interface AuthUser {
+  id: number;
+  email: string;
+  facultyShortCode?: string;
+  token: string;
+}
+
 export interface CreateReportPayload {
   lat: number;
   lng: number;

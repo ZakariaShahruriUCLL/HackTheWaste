@@ -917,6 +917,37 @@ textarea {
   }
 }
 
+/* topbar auth area */
+.topbar-auth {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 12px;
+  border-left: 1px solid var(--border);
+}
+
+.theme-pro .topbar-auth {
+  border-left-color: var(--pro-border);
+}
+
+.theme-student .topbar-auth {
+  border-left-color: var(--border);
+}
+
+.topbar-user {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-soft);
+  white-space: nowrap;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.theme-pro .topbar-user {
+  color: var(--pro-fg-soft);
+}
+
 /* footer */
 .app-footer {
   padding: 14px 28px;
