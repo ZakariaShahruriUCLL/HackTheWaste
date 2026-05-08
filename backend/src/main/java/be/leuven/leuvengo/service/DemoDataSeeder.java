@@ -11,7 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -62,21 +65,59 @@ public class DemoDataSeeder {
                 faculties.count(), segments.count(), rewards.count(), reports.count());
     }
 
+    /**
+     * Teams from the 24 Uur van Leuven (24 Hours of Leuven) student competition.
+     * Territories are laid out on a 7x3 grid roughly covering Leuven's centre + campuses
+     * so the student dashboard map shows a clean tiling rather than overlaps.
+     */
     private List<Faculty> seedFaculties() {
-        Faculty engineering = faculty("Engineering Science", "ENG", "#2563eb", "🛠",
-                3200, 0,
-                polygon(50.8645, 4.6770, 50.8645, 4.6900, 50.8740, 4.6900, 50.8740, 4.6770));
-        Faculty law = faculty("Law", "LAW", "#dc2626", "⚖️", 2100, 0,
-                polygon(50.8770, 4.6900, 50.8770, 4.7050, 50.8830, 4.7050, 50.8830, 4.6900));
-        Faculty medicine = faculty("Medicine", "MED", "#16a34a", "🩺", 2900, 0,
-                polygon(50.8520, 4.6680, 50.8520, 4.6800, 50.8620, 4.6800, 50.8620, 4.6680));
-        Faculty arts = faculty("Arts & Humanities", "ART", "#9333ea", "🎭", 2400, 0,
-                polygon(50.8780, 4.6970, 50.8780, 4.7090, 50.8860, 4.7090, 50.8860, 4.6970));
-        Faculty economics = faculty("Economics & Business", "ECO", "#f59e0b", "📈", 2700, 0,
-                polygon(50.8800, 4.7000, 50.8800, 4.7150, 50.8870, 4.7150, 50.8870, 4.7000));
-        Faculty science = faculty("Science", "SCI", "#0891b2", "🧪", 2200, 0,
-                polygon(50.8650, 4.6700, 50.8650, 4.6810, 50.8730, 4.6810, 50.8730, 4.6700));
-        return faculties.saveAll(List.of(engineering, law, medicine, arts, economics, science));
+        String[][] data = {
+                {"Apolloon", "APO", "#1d4ed8", "🏃"},
+                {"Ekonomika", "EKO", "#10b981", "📊"},
+                {"LBK", "LBK", "#65a30d", "🌱"},
+                {"VTK", "VTK", "#dc2626", "⚙️"},
+                {"Wina", "WIN", "#ec4899", "🧮"},
+                {"UCLL", "UCL", "#2563eb", "🎓"},
+                {"Psychokring", "PSY", "#9333ea", "🧠"},
+                {"Thomas Morus", "TMO", "#ca8a04", "📜"},
+                {"Atmosphere", "ATM", "#0ea5e9", "🌍"},
+                {"Runner's High", "RNH", "#f97316", "💨"},
+                {"Industria", "IND", "#1e3a8a", "🏭"},
+                {"Farmaceutica", "FAR", "#14b8a6", "💊"},
+                {"VRG-Crimen", "VRG", "#991b1b", "⚖️"},
+                {"Politika", "POL", "#0f172a", "🗳"},
+                {"Run for Specials", "RFS", "#f59e0b", "🌟"},
+                {"HMV", "HMV", "#a78bfa", "🎵"},
+                {"Pedal", "PED", "#0d9488", "🚴"},
+                {"Lerkeveld", "LRK", "#78350f", "🏠"},
+                {"ESN", "ESN", "#3b82f6", "🌐"},
+                {"Project Unseen", "PUS", "#475569", "👁"},
+                {"Humasol", "HUM", "#eab308", "☀️"}
+        };
+        int[] members = {1200, 2400, 800, 2800, 1100, 1900, 1600, 700, 900, 600, 2200,
+                1400, 1300, 1000, 500, 750, 850, 1150, 1500, 950, 1300};
+
+        int cols = 7;
+        double baseLat = 50.860;
+        double baseLng = 4.668;
+        double tileLat = 0.010;
+        double tileLng = 0.0085;
+
+        List<Faculty> list = new ArrayList<>();
+        for (int i = 0; i < data.length; i++) {
+            int col = i % cols;
+            int row = i / cols;
+            double minLat = baseLat + row * tileLat;
+            double maxLat = minLat + tileLat;
+            double minLng = baseLng + col * tileLng;
+            double maxLng = minLng + tileLng;
+            list.add(faculty(
+                    data[i][0], data[i][1], data[i][2], data[i][3],
+                    members[i], 0,
+                    polygon(minLat, minLng, minLat, maxLng, maxLat, maxLng, maxLat, minLng)
+            ));
+        }
+        return faculties.saveAll(list);
     }
 
     private Faculty faculty(String name, String code, String color, String emoji,
@@ -93,26 +134,22 @@ public class DemoDataSeeder {
     }
 
     private void seedSegments(List<Faculty> facs) {
-        Faculty arts = facs.stream().filter(f -> f.getShortCode().equals("ART")).findFirst().orElse(null);
-        Faculty law = facs.stream().filter(f -> f.getShortCode().equals("LAW")).findFirst().orElse(null);
-        Faculty eng = facs.stream().filter(f -> f.getShortCode().equals("ENG")).findFirst().orElse(null);
-        Faculty eco = facs.stream().filter(f -> f.getShortCode().equals("ECO")).findFirst().orElse(null);
-        Faculty med = facs.stream().filter(f -> f.getShortCode().equals("MED")).findFirst().orElse(null);
-        Faculty sci = facs.stream().filter(f -> f.getShortCode().equals("SCI")).findFirst().orElse(null);
+        Map<String, Faculty> by = new HashMap<>();
+        facs.forEach(f -> by.put(f.getShortCode(), f));
 
         segments.saveAll(List.of(
-                segment("Oude Markt", "Centrum", 50.8780, 4.7010, arts),
-                segment("Naamsestraat", "Centrum", 50.8762, 4.7008, law),
-                segment("Tiensestraat", "Centrum", 50.8800, 4.7080, eco),
-                segment("Vaartkom", "Noord", 50.8870, 4.7050, eng),
-                segment("Heverlee Campus", "Heverlee", 50.8635, 4.6770, eng),
-                segment("Gasthuisberg", "Zuid", 50.8525, 4.6720, med),
-                segment("Sint-Maartensdal", "Centrum", 50.8830, 4.6960, arts),
-                segment("Bondgenotenlaan", "Centrum", 50.8810, 4.7050, eco),
-                segment("Parkstraat", "Heverlee", 50.8720, 4.6960, sci),
-                segment("Diestsestraat", "Centrum", 50.8830, 4.7060, eco),
-                segment("Brusselsestraat", "Centrum", 50.8775, 4.6960, law),
-                segment("Kessel-Lo Station", "Kessel-Lo", 50.8830, 4.7240, eco)
+                segment("Oude Markt", "Centrum", 50.8780, 4.7010, by.get("APO")),
+                segment("Naamsestraat", "Centrum", 50.8762, 4.7008, by.get("EKO")),
+                segment("Tiensestraat", "Centrum", 50.8800, 4.7080, by.get("VTK")),
+                segment("Vaartkom", "Noord", 50.8870, 4.7050, by.get("IND")),
+                segment("Heverlee Campus", "Heverlee", 50.8635, 4.6770, by.get("WIN")),
+                segment("Gasthuisberg", "Zuid", 50.8525, 4.6720, by.get("FAR")),
+                segment("Sint-Maartensdal", "Centrum", 50.8830, 4.6960, by.get("UCL")),
+                segment("Bondgenotenlaan", "Centrum", 50.8810, 4.7050, by.get("ESN")),
+                segment("Parkstraat", "Heverlee", 50.8720, 4.6960, by.get("PSY")),
+                segment("Diestsestraat", "Centrum", 50.8830, 4.7060, by.get("LBK")),
+                segment("Brusselsestraat", "Centrum", 50.8775, 4.6960, by.get("TMO")),
+                segment("Kessel-Lo Station", "Kessel-Lo", 50.8830, 4.7240, by.get("PED"))
         ));
     }
 
@@ -165,11 +202,11 @@ public class DemoDataSeeder {
     private void seedReports() {
         Random rnd = new Random(42);
         // Three real-feeling clusters: Oude Markt (party), Naamsestraat (student housing), Vaartkom
-        seedCluster(rnd, 50.8780, 4.7010, 7, 1, "ART", "litter,glass,overflow");
-        seedCluster(rnd, 50.8762, 4.7008, 4, 2, "LAW", "litter,packaging");
-        seedCluster(rnd, 50.8870, 4.7050, 3, 2, "ENG", "graffiti,litter");
-        seedCluster(rnd, 50.8635, 4.6770, 2, 4, "ENG", "leaves");
-        seedCluster(rnd, 50.8830, 4.7240, 5, 1, "ECO", "overflow,packaging");
+        seedCluster(rnd, 50.8780, 4.7010, 7, 1, "APO", "litter,glass,overflow");
+        seedCluster(rnd, 50.8762, 4.7008, 4, 2, "EKO", "litter,packaging");
+        seedCluster(rnd, 50.8870, 4.7050, 3, 2, "IND", "graffiti,litter");
+        seedCluster(rnd, 50.8635, 4.6770, 2, 4, "WIN", "leaves");
+        seedCluster(rnd, 50.8830, 4.7240, 5, 1, "PED", "overflow,packaging");
 
         // Backdate the timestamps so the trend chart has shape.
         List<Report> all = reports.findAll();
