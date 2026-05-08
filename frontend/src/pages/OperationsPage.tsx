@@ -47,7 +47,7 @@ export default function OperationsPage() {
               </h3>
             </div>
           </div>
-          <HotspotMap hotspots={hotspots.data ?? []} variant="pro" height={420} />
+          <HotspotMap hotspots={hotspots.data ?? []} height={420} />
         </div>
 
         <div className="card">

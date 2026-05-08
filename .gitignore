@@ -15,3 +15,5 @@ backend/.mvn
 .vscode
 *.iml
 *.swp
+
+.claude

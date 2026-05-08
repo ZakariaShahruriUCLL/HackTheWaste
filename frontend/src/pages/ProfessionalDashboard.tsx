@@ -99,7 +99,7 @@ export default function ProfessionalDashboard() {
               {hotspots.data?.length ?? 0} clusters
             </span>
           </div>
-          <HotspotMap hotspots={hotspots.data ?? []} variant="pro" />
+          <HotspotMap hotspots={hotspots.data ?? []} />
         </div>
 
         <div className="card">

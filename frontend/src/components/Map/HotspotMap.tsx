@@ -1,12 +1,22 @@
-import { CircleMarker, MapContainer, Popup, TileLayer } from "react-leaflet";
+import {
+  CircleMarker,
+  MapContainer,
+  Popup,
+  ScaleControl,
+  TileLayer,
+} from "react-leaflet";
 import "./leafletSetup";
-import { LEUVEN_CENTER } from "./leafletSetup";
+import {
+  LEUVEN_BOUNDS,
+  LEUVEN_CENTER,
+  LEUVEN_MAX_ZOOM,
+  LEUVEN_MIN_ZOOM,
+} from "./leafletSetup";
 import type { HotspotDto } from "../../api/types";
 
 interface Props {
   hotspots: HotspotDto[];
   height?: number;
-  variant?: "pro" | "student";
 }
 
 const STATUS_COLOR: Record<HotspotDto["status"], string> = {
@@ -16,25 +26,26 @@ const STATUS_COLOR: Record<HotspotDto["status"], string> = {
   RESOLVED: "#16a34a",
 };
 
-export function HotspotMap({ hotspots, height = 520, variant = "pro" }: Props) {
-  const tileUrl =
-    variant === "pro"
-      ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-      : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
-
+export function HotspotMap({ hotspots, height = 520 }: Props) {
   return (
     <div className="map-shell" style={{ height }}>
       <MapContainer
         center={LEUVEN_CENTER}
         zoom={14}
+        minZoom={LEUVEN_MIN_ZOOM}
+        maxZoom={LEUVEN_MAX_ZOOM}
+        maxBounds={LEUVEN_BOUNDS}
+        maxBoundsViscosity={0.9}
         scrollWheelZoom
         style={{ height: "100%", width: "100%" }}
       >
         <TileLayer
-          url={tileUrl}
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; CARTO'
           subdomains="abcd"
+          maxZoom={LEUVEN_MAX_ZOOM}
         />
+        <ScaleControl position="bottomleft" imperial={false} />
         {hotspots.map((h) => {
           const radius = Math.min(28, 10 + (h.reportCount ?? 1) * 3);
           const color = STATUS_COLOR[h.status] ?? "#f97316";

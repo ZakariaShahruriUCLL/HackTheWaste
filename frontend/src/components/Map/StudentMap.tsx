@@ -4,11 +4,17 @@ import {
   MapContainer,
   Polygon,
   Popup,
+  ScaleControl,
   TileLayer,
   Tooltip,
 } from "react-leaflet";
 import "./leafletSetup";
-import { LEUVEN_CENTER } from "./leafletSetup";
+import {
+  LEUVEN_BOUNDS,
+  LEUVEN_CENTER,
+  LEUVEN_MAX_ZOOM,
+  LEUVEN_MIN_ZOOM,
+} from "./leafletSetup";
 import type {
   FacultyDto,
   HotspotDto,
@@ -69,13 +75,20 @@ export function StudentMap({
       <MapContainer
         center={LEUVEN_CENTER}
         zoom={14}
+        minZoom={LEUVEN_MIN_ZOOM}
+        maxZoom={LEUVEN_MAX_ZOOM}
+        maxBounds={LEUVEN_BOUNDS}
+        maxBoundsViscosity={0.9}
+        scrollWheelZoom
         style={{ height: "100%", width: "100%" }}
       >
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/voyager/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; CARTO'
           subdomains="abcd"
+          maxZoom={LEUVEN_MAX_ZOOM}
         />
+        <ScaleControl position="bottomleft" imperial={false} />
 
         {territories.map(({ faculty, coords }) => {
           const dimmed =
