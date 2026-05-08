@@ -35,6 +35,9 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>
+      <footer className="app-footer">
+        © 2026 ReCode
+      </footer>
     </div>
   );
 }

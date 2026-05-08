@@ -12,11 +12,11 @@
   --warning: #f97316;
   --success: #16a34a;
   --info: #2563eb;
-  --pro-bg: #0b1220;
-  --pro-bg-elev: #111c34;
-  --pro-fg: #e2e8f0;
+  --pro-bg: #0f172a;
+  --pro-bg-elev: #1e293b;
+  --pro-fg: #f1f5f9;
   --pro-fg-soft: #94a3b8;
-  --pro-border: #1e293b;
+  --pro-border: #334155;
   --pro-accent: #38bdf8;
   --student-bg: #fef9f0;
   --student-card: #ffffff;
@@ -132,6 +132,13 @@ textarea {
   background: var(--bg-soft);
   color: var(--fg);
 }
+
+.nav .btn-primary { color: #fff; }
+.nav .btn-primary:hover { color: #fff; background: var(--primary); }
+.nav .btn-accent { color: #1f2937; }
+.nav .btn-accent:hover { color: #1f2937; background: var(--accent); }
+.nav .btn-ghost { color: var(--fg); }
+.theme-pro .nav .btn-ghost { color: var(--pro-fg); }
 
 .btn {
   display: inline-flex;
@@ -297,9 +304,11 @@ textarea {
   bottom: 12px;
   right: 12px;
   background: rgba(255, 255, 255, 0.96);
+  color: #1f2937;
   padding: 10px 12px;
   border-radius: 10px;
   font-size: 12px;
+  font-weight: 500;
   line-height: 1.6;
   box-shadow: var(--shadow);
   z-index: 400;
@@ -363,14 +372,14 @@ textarea {
 
 .theme-student .card {
   background: var(--student-card);
-  border-color: #f1e9d5;
-  border-radius: 18px;
-  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.08);
+  border-color: #e5e7eb;
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
 }
 
 .theme-student .topbar {
-  background: linear-gradient(120deg, #fff7ed 0%, #fef9f0 100%);
-  border-bottom: 1px solid #f1e9d5;
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
 }
 
 /* pro theme overrides */
@@ -906,4 +915,25 @@ textarea {
   .hero {
     padding: 36px 22px;
   }
+}
+
+/* footer */
+.app-footer {
+  padding: 14px 28px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--fg-soft);
+  border-top: 1px solid var(--border);
+  background: var(--bg-elev);
+}
+
+.theme-pro .app-footer {
+  background: var(--pro-bg-elev);
+  border-top-color: var(--pro-border);
+  color: var(--pro-fg-soft);
+}
+
+.theme-student .app-footer {
+  background: var(--bg-elev);
+  border-top-color: var(--border);
 }

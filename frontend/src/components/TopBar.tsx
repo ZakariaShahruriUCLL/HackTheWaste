@@ -12,12 +12,7 @@ export function TopBar() {
     <header className="topbar">
       <NavLink to="/" className="brand">
         <span className="brand-mark">LG</span>
-        <span>
-          Leuven Go{" "}
-          <span className="muted" style={{ fontWeight: 500 }}>
-            · cleanliness, gamified
-          </span>
-        </span>
+        <span>Leuven Go</span>
       </NavLink>
 
       {mode === "landing" && (
@@ -49,6 +44,9 @@ export function TopBar() {
           </NavLink>
           <NavLink to="/student/leaderboard">Clans</NavLink>
           <NavLink to="/market">Rewards</NavLink>
+          <NavLink to="/" className="btn btn-ghost btn-sm">
+            Switch view
+          </NavLink>
           <NavLink to="/report" className="btn btn-accent btn-sm">
             + Report
           </NavLink>

@@ -29,8 +29,8 @@ export default function StudentDashboard() {
         <div
           style={{
             padding: "26px 28px",
-            background:
-              "linear-gradient(120deg, #fde68a 0%, #fcd34d 50%, #fb923c 100%)",
+            background: "linear-gradient(120deg, #fffbeb 0%, #fef3c7 100%)",
+            borderBottom: "1px solid #f1e9d5",
           }}
         >
           <span
@@ -39,7 +39,7 @@ export default function StudentDashboard() {
               fontWeight: 600,
               letterSpacing: "0.1em",
               textTransform: "uppercase",
-              opacity: 0.7,
+              color: "#92400e",
             }}
           >
             🎓 Leuven Go · student crew
@@ -53,7 +53,7 @@ export default function StudentDashboard() {
             {(faculties.data ?? []).map((f) => (
               <button
                 key={f.id}
-                onClick={() => setSelected(f.shortCode)}
+                onClick={() => setSelected(s => s === f.shortCode ? undefined : f.shortCode)}
                 className="btn btn-sm"
                 style={{
                   background: selected === f.shortCode ? f.color : "white",
@@ -253,9 +253,9 @@ function Stat({
     <div
       style={{
         background: "white",
-        borderRadius: 14,
+        borderRadius: 12,
         padding: 14,
-        border: "1px solid #f1e9d5",
+        border: "1px solid #e5e7eb",
       }}
     >
       <div className="card-title" style={{ fontSize: 11 }}>
