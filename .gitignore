@@ -1,0 +1,17 @@
+# node
+frontend/node_modules
+frontend/dist
+frontend/.vite
+*.log
+
+# java
+backend/target
+backend/.mvn
+.mvn/wrapper/maven-wrapper.jar
+
+# editor / OS
+.DS_Store
+.idea
+.vscode
+*.iml
+*.swp

@@ -1,0 +1,43 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: leuven-go
+  datasource:
+    url: jdbc:h2:mem:leuvengo;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: false
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  servlet:
+    multipart:
+      max-file-size: 8MB
+      max-request-size: 8MB
+
+leuvengo:
+  planon:
+    # Stubbed - real integration would target Planon Web Services REST API
+    base-url: http://localhost:8080/mock-planon
+    api-key: demo-key
+  traffic:
+    # meters - reports within this radius are merged into the same hotspot
+    cluster-radius-m: 40
+    # decay window for stale reports
+    report-ttl-hours: 72
+    # threshold of merged reports that auto-escalates a hotspot to a Planon work order
+    work-order-threshold: 3
+  city:
+    name: Leuven
+    centerLat: 50.8798
+    centerLng: 4.7005
