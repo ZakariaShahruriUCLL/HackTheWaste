@@ -3,7 +3,6 @@ package be.leuven.leuvengo.web;
 import be.leuven.leuvengo.config.AppProperties;
 import be.leuven.leuvengo.domain.Hotspot;
 import be.leuven.leuvengo.domain.Report;
-import be.leuven.leuvengo.domain.StreetSegment;
 import be.leuven.leuvengo.domain.WorkOrder;
 import be.leuven.leuvengo.repository.HotspotRepository;
 import be.leuven.leuvengo.repository.ReportRepository;

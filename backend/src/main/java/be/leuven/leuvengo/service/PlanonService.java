@@ -1,6 +1,5 @@
 package be.leuven.leuvengo.service;
 
-import be.leuven.leuvengo.config.AppProperties;
 import be.leuven.leuvengo.domain.Hotspot;
 import be.leuven.leuvengo.domain.WorkOrder;
 import be.leuven.leuvengo.repository.HotspotRepository;
@@ -26,14 +25,10 @@ public class PlanonService {
 
     private final WorkOrderRepository workOrders;
     private final HotspotRepository hotspots;
-    private final AppProperties props;
 
-    public PlanonService(WorkOrderRepository workOrders,
-                         HotspotRepository hotspots,
-                         AppProperties props) {
+    public PlanonService(WorkOrderRepository workOrders, HotspotRepository hotspots) {
         this.workOrders = workOrders;
         this.hotspots = hotspots;
-        this.props = props;
     }
 
     /** Idempotent: if the hotspot is already escalated/dispatched, return existing order. */

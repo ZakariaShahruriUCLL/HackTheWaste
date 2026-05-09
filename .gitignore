@@ -23,4 +23,5 @@ infra/postgresql.bicepparam
 infra/main.bicepparam
 
 # local secrets — never commit
+.env
 backend/src/main/resources/application-local.yml
