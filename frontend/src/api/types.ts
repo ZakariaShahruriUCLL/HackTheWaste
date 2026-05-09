@@ -109,6 +109,31 @@ export interface CityConfig {
   workOrderThreshold: number;
 }
 
+export interface TrashPhotoDto {
+  id: number;
+  username: string;
+  email?: string;
+  facultyShortCode?: string;
+  facultyEmoji?: string;
+  facultyColor?: string;
+  photoUrl?: string;
+  lat?: number;
+  lng?: number;
+  segmentName?: string;
+  cleanlinessScore?: number;
+  userRating?: number;
+  tags?: string;
+  reportedAt: string;
+}
+
+export interface FeedPage {
+  content: TrashPhotoDto[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  last: boolean;
+}
+
 export interface AuthUser {
   id: number;
   email: string;

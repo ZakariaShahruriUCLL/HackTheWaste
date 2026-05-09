@@ -1,7 +1,10 @@
 package be.leuven.leuvengo.web;
 
 import be.leuven.leuvengo.domain.PendingReport;
+import be.leuven.leuvengo.domain.TrashPhoto;
 import be.leuven.leuvengo.repository.PendingReportRepository;
+import be.leuven.leuvengo.repository.TrashPhotoRepository;
+import be.leuven.leuvengo.service.GeminiService;
 import be.leuven.leuvengo.service.ReportService;
 import com.twilio.twiml.MessagingResponse;
 import com.twilio.twiml.messaging.Message;
@@ -17,18 +20,15 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
- * Twilio WhatsApp webhook. Two-step flow:
- *   1. User shares a location pin  → we open a {@link PendingReport}
- *      and ask them for a photo.
- *   2. User sends a photo          → we attach mediaUrl + a mock score
- *      to the most recent open PendingReport (preferring same sender)
- *      and confirm receipt.
- *
- * Reply bodies are built with the Twilio SDK's {@link MessagingResponse}
- * so the TwiML XML is always well-formed.
+ * Twilio WhatsApp webhook — two-step flow:
+ *   1. User shares a location pin  → opens a PendingReport and asks for a photo.
+ *   2. User sends a photo          → scores via Gemini 1.5 Flash, saves to feed,
+ *      pushes into the hotspot pipeline, and replies with the AI result.
  */
 @RestController
 @RequestMapping("/api/whatsapp")
@@ -36,16 +36,19 @@ public class WhatsAppController {
 
     private static final Logger log = LoggerFactory.getLogger(WhatsAppController.class);
 
-    /** Mock cleanliness score until a real classifier is wired in. */
-    private static final int MOCK_SCORE = 3;
-
     private final PendingReportRepository pending;
+    private final TrashPhotoRepository photos;
     private final ReportService reportService;
+    private final GeminiService gemini;
 
     public WhatsAppController(PendingReportRepository pending,
-                              ReportService reportService) {
+                              TrashPhotoRepository photos,
+                              ReportService reportService,
+                              GeminiService gemini) {
         this.pending = pending;
+        this.photos = photos;
         this.reportService = reportService;
+        this.gemini = gemini;
     }
 
     @PostMapping(value = "/webhook", produces = MediaType.APPLICATION_XML_VALUE)
@@ -62,11 +65,9 @@ public class WhatsAppController {
         if (lat != null && lng != null) {
             return handleLocation(from, lat, lng);
         }
-
         if (mediaUrl != null && !mediaUrl.isBlank()) {
             return handlePhoto(from, mediaUrl);
         }
-
         return reply("Hi! Send a 📍 location pin to start a cleanliness report.");
     }
 
@@ -79,8 +80,8 @@ public class WhatsAppController {
         pr.setCompleted(false);
         pending.save(pr);
 
-        return reply("Thank you! Please send a picture of the trash to help us "
-                + "assess the emergency (0-5).");
+        return reply("Got it! 📍 Now please send a photo of the trash "
+                + "so our AI can assess the severity.");
     }
 
     private String handlePhoto(String from, String mediaUrl) {
@@ -91,43 +92,93 @@ public class WhatsAppController {
                                 .or(pending::findFirstByCompletedFalseOrderByCreatedAtDesc);
 
         if (latest.isEmpty()) {
-            return reply("We don't have a location yet — please share a 📍 location "
-                    + "pin first, then re-send the photo.");
+            return reply("We don't have a location yet — please share a 📍 location pin first, "
+                    + "then re-send the photo.");
         }
 
         PendingReport pr = latest.get();
+
+        // AI cleanliness scoring via Gemini 1.5 Flash
+        GeminiService.ScoreResult ai = gemini.scorePhoto(mediaUrl);
+        int cleanlinessScore = ai.score();          // 0-100 (100 = clean)
+        int rating = toRating(cleanlinessScore);    // 1-5 dirtiness for pipeline
+
         pr.setMediaUrl(mediaUrl);
-        pr.setCleanlinessScore(MOCK_SCORE);
+        pr.setCleanlinessScore(rating);
         pr.setCompleted(true);
         pending.save(pr);
 
-        // Push the WhatsApp report into the same pipeline used by the in-app
-        // reporter so it shows up on the pro/student dashboard maps, ticks
-        // the city KPIs and (if threshold crossed) auto-dispatches a Planon
-        // work order. Phone number is hashed — we never persist PII.
+        // Push into hotspot pipeline (maps, work orders, leaderboard)
         try {
             reportService.submit(new ReportService.Submission(
-                    pr.getLat(), pr.getLng(), MOCK_SCORE,
+                    pr.getLat(), pr.getLng(), rating,
                     "WhatsApp report",
                     mediaUrl,
-                    "whatsapp",
+                    ai.tags().isEmpty() ? null : String.join(",", ai.tags()),
                     null,
                     pseudoIdFor(from)
             ));
         } catch (Exception ex) {
-            log.warn("Failed to ingest WhatsApp report into pipeline", ex);
+            log.warn("Failed to ingest WhatsApp report into hotspot pipeline", ex);
         }
 
-        return reply("Report received! Cleanliness level: " + MOCK_SCORE
-                + ". Our crews are on it!");
+        // Save to photo feed
+        try {
+            TrashPhoto photo = new TrashPhoto();
+            photo.setUsername("WhatsApp user");
+            photo.setPhotoUrl(mediaUrl);
+            photo.setLat(pr.getLat());
+            photo.setLng(pr.getLng());
+            photo.setCleanlinessScore(cleanlinessScore);
+            photo.setUserRating(rating);
+            photo.setTags(ai.tags().isEmpty() ? null : String.join(",", ai.tags()));
+            photo.setReportedAt(Instant.now());
+            photos.save(photo);
+        } catch (Exception ex) {
+            log.warn("Failed to save photo to feed", ex);
+        }
+
+        return reply(buildReply(cleanlinessScore, ai.description(), ai.tags()));
     }
 
-    /** GDPR-friendly: never persist the raw WhatsApp number. */
+    /** Converts 0-100 cleanliness score to a 1-5 dirtiness rating for the pipeline. */
+    private static int toRating(int cleanlinessScore) {
+        if (cleanlinessScore >= 80) return 1;
+        if (cleanlinessScore >= 60) return 2;
+        if (cleanlinessScore >= 40) return 3;
+        if (cleanlinessScore >= 20) return 4;
+        return 5;
+    }
+
+    private static String buildReply(int score, String description, List<String> tags) {
+        String label = score >= 80 ? "Clean 🟢"
+                : score >= 60 ? "Mild litter 🟡"
+                : score >= 40 ? "Moderate waste 🟠"
+                : "Critical — urgent cleanup needed 🔴";
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("🤖 AI Analysis complete!\n\n");
+        sb.append("Cleanliness score: ").append(score).append("/100 — ").append(label).append('\n');
+        if (!description.isBlank() && !"no description".equals(description)
+                && !"AI scoring unavailable".equals(description)
+                && !"scoring error".equals(description)) {
+            sb.append("Assessment: ").append(description).append('\n');
+        }
+        if (!tags.isEmpty()) {
+            sb.append("Spotted: ").append(
+                    tags.stream().map(t -> "#" + t).collect(Collectors.joining(" "))
+            ).append('\n');
+        }
+        sb.append("\nYour report is live on the Leuven Go feed! "
+                + "Our crew has been notified. Thank you for keeping Leuven clean! 🌿");
+        return sb.toString();
+    }
+
+    /** GDPR-friendly: hash the raw WhatsApp number so we never persist PII. */
     private static String pseudoIdFor(String from) {
         if (from == null) return "wa-anon";
         try {
-            byte[] hash = MessageDigest.getInstance("SHA-1")
-                    .digest(from.getBytes());
+            byte[] hash = MessageDigest.getInstance("SHA-1").digest(from.getBytes());
             return "wa-" + HexFormat.of().formatHex(hash).substring(0, 8);
         } catch (NoSuchAlgorithmException e) {
             return "wa-anon";

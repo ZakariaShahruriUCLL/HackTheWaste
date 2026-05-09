@@ -17,3 +17,9 @@ backend/.mvn
 *.swp
 
 .claude
+
+# infra secrets
+infra/postgresql.bicepparam
+
+# local secrets — never commit
+backend/src/main/resources/application-local.yml

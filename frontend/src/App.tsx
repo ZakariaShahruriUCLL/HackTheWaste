@@ -8,6 +8,7 @@ import OperationsPage from "./pages/OperationsPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import FeedPage from "./pages/FeedPage";
 import { TopBar } from "./components/TopBar";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -37,6 +38,7 @@ export default function App() {
             <Route path="/student/leaderboard" element={<LeaderboardPage />} />
             <Route path="/report" element={<ProtectedRoute><ReportPage /></ProtectedRoute>} />
             <Route path="/market" element={<MarketplacePage />} />
+            <Route path="/feed" element={<FeedPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="*" element={<Navigate to="/" />} />

@@ -1,0 +1,6 @@
+gemini:
+  api-key: PASTE_YOUR_GEMINI_API_KEY_HERE
+
+twilio:
+  account-sid: PASTE_YOUR_TWILIO_ACCOUNT_SID_HERE
+  auth-token: PASTE_YOUR_TWILIO_AUTH_TOKEN_HERE

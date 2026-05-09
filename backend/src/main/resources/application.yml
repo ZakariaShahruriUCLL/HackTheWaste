@@ -27,6 +27,13 @@ spring:
       max-file-size: 8MB
       max-request-size: 8MB
 
+gemini:
+  api-key: ${GEMINI_API_KEY:}
+
+twilio:
+  account-sid: ${TWILIO_ACCOUNT_SID:}
+  auth-token: ${TWILIO_AUTH_TOKEN:}
+
 leuvengo:
   planon:
     # Stubbed - real integration would target Planon Web Services REST API

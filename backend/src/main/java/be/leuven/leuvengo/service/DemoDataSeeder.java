@@ -2,6 +2,8 @@ package be.leuven.leuvengo.service;
 
 import be.leuven.leuvengo.domain.*;
 import be.leuven.leuvengo.repository.*;
+import be.leuven.leuvengo.domain.TrashPhoto;
+import be.leuven.leuvengo.repository.TrashPhotoRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -34,19 +36,22 @@ public class DemoDataSeeder {
     private final ReportRepository reports;
     private final ReportService reportService;
     private final ScoringService scoring;
+    private final TrashPhotoRepository trashPhotos;
 
     public DemoDataSeeder(FacultyRepository faculties,
                           StreetSegmentRepository segments,
                           RewardItemRepository rewards,
                           ReportRepository reports,
                           ReportService reportService,
-                          ScoringService scoring) {
+                          ScoringService scoring,
+                          TrashPhotoRepository trashPhotos) {
         this.faculties = faculties;
         this.segments = segments;
         this.rewards = rewards;
         this.reports = reports;
         this.reportService = reportService;
         this.scoring = scoring;
+        this.trashPhotos = trashPhotos;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -60,6 +65,7 @@ public class DemoDataSeeder {
         seedRewards();
         seedReports();
         scoring.recomputeAll();
+        seedFeed(facs);
 
         log.info("Seed complete: {} faculties, {} segments, {} rewards, {} reports",
                 faculties.count(), segments.count(), rewards.count(), reports.count());
@@ -227,6 +233,46 @@ public class DemoDataSeeder {
                     lat + dLat, lng + dLng, rating,
                     "Demo report - " + tags, null, tags,
                     facCode, "seed-" + facCode + "-" + i));
+        }
+    }
+
+    /** Seed demo feed entries so the gallery has something to show out of the box.
+     *  photoUrl points to picsum.photos (random nature/street photos) as stand-ins
+     *  until real WhatsApp uploads populate the Azure blob container. */
+    private void seedFeed(List<Faculty> facs) {
+        Map<String, Faculty> by = new HashMap<>();
+        facs.forEach(f -> by.put(f.getShortCode(), f));
+
+        Object[][] entries = {
+            {"thomas.v",  "thomas.v@student.kuleuven.be",  "APO", 50.8780, 4.7010, "Oude Markt",       2, 28, "litter,glass",      "https://picsum.photos/seed/litter1/600/600", 6},
+            {"sarah.d",   "sarah.d@student.kuleuven.be",   "EKO", 50.8762, 4.7008, "Naamsestraat",      3, 55, "packaging",         "https://picsum.photos/seed/trash2/600/600",  18},
+            {"maxim.p",   "maxim.p@student.kuleuven.be",   "VTK", 50.8800, 4.7080, "Tiensestraat",      1, 12, "overflow,litter",   "https://picsum.photos/seed/bin3/600/600",    30},
+            {"lena.w",    "lena.w@student.kuleuven.be",    "WIN", 50.8635, 4.6770, "Heverlee Campus",   4, 78, "leaves",            "https://picsum.photos/seed/leaves4/600/600", 45},
+            {"remi.b",    "remi.b@student.kuleuven.be",    "IND", 50.8870, 4.7050, "Vaartkom",          2, 35, "graffiti,litter",   "https://picsum.photos/seed/urban5/600/600",  52},
+            {"noor.a",    "noor.a@student.kuleuven.be",    "FAR", 50.8525, 4.6720, "Gasthuisberg",      3, 61, "packaging",         "https://picsum.photos/seed/street6/600/600", 60},
+            {"pieter.j",  "pieter.j@student.kuleuven.be",  "PSY", 50.8720, 4.6960, "Parkstraat",        0, 5,  "vomit,cigarettes",  "https://picsum.photos/seed/mess7/600/600",   70},
+            {"anouk.s",   "anouk.s@student.kuleuven.be",   "LBK", 50.8830, 4.7060, "Diestsestraat",     3, 58, "litter",            "https://picsum.photos/seed/road8/600/600",   78},
+            {"jens.m",    "jens.m@student.kuleuven.be",    "ESN", 50.8810, 4.7050, "Bondgenotenlaan",   4, 82, "leaves,packaging",  "https://picsum.photos/seed/path9/600/600",   85},
+            {"elisa.k",   "elisa.k@student.kuleuven.be",   "PED", 50.8830, 4.7240, "Kessel-Lo Station", 1, 20, "overflow",          "https://picsum.photos/seed/cycle10/600/600", 93},
+        };
+
+        for (Object[] e : entries) {
+            Faculty f = by.get((String) e[2]);
+            TrashPhoto p = new TrashPhoto();
+            p.setUsername((String) e[0]);
+            p.setEmail((String) e[1]);
+            p.setFacultyShortCode((String) e[2]);
+            p.setFacultyEmoji(f != null ? f.getEmoji() : "");
+            p.setFacultyColor(f != null ? f.getColor() : "#888");
+            p.setLat((Double) e[3]);
+            p.setLng((Double) e[4]);
+            p.setSegmentName((String) e[5]);
+            p.setUserRating((Integer) e[6]);
+            p.setCleanlinessScore((Integer) e[7]);
+            p.setTags((String) e[8]);
+            p.setPhotoUrl((String) e[9]);
+            p.setReportedAt(Instant.now().minus((Integer) e[10], ChronoUnit.HOURS));
+            trashPhotos.save(p);
         }
     }
 

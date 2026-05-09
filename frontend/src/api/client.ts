@@ -3,6 +3,7 @@ import type {
   CityConfig,
   CreateReportPayload,
   FacultyDto,
+  FeedPage,
   HotspotDto,
   LeaderboardEntry,
   ReportDto,
@@ -75,4 +76,9 @@ export const api = {
       method: "POST",
     }),
   rewards: () => request<RewardItemDto[]>("/rewards"),
+  feed: (page = 0, size = 12, clan?: string) => {
+    const params = new URLSearchParams({ page: String(page), size: String(size) });
+    if (clan) params.set("clan", clan);
+    return request<FeedPage>(`/feed?${params}`);
+  },
 };

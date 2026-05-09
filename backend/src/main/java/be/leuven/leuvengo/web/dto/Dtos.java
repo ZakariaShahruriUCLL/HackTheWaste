@@ -1,6 +1,7 @@
 package be.leuven.leuvengo.web.dto;
 
 import be.leuven.leuvengo.domain.*;
+import be.leuven.leuvengo.domain.TrashPhoto;
 
 import java.time.Instant;
 import java.util.List;
@@ -49,6 +50,13 @@ public final class Dtos {
                            List<HotspotDto> topHotspots) {}
 
     public record TimeBucket(String label, long count) {}
+
+    public record TrashPhotoDto(
+            Long id, String username, String email,
+            String facultyShortCode, String facultyEmoji, String facultyColor,
+            String photoUrl, Double lat, Double lng, String segmentName,
+            Integer cleanlinessScore, Integer userRating, String tags,
+            Instant reportedAt) {}
 
     public static ReportDto of(Report r) {
         return new ReportDto(
@@ -103,5 +111,14 @@ public final class Dtos {
         return new RewardItemDto(r.getId(), r.getTitle(), r.getDescription(),
                 r.getSponsor(), r.getImageRef(), r.getCategory(),
                 r.getCostPoints(), r.getStock());
+    }
+
+    public static TrashPhotoDto of(TrashPhoto p) {
+        return new TrashPhotoDto(
+                p.getId(), p.getUsername(), p.getEmail(),
+                p.getFacultyShortCode(), p.getFacultyEmoji(), p.getFacultyColor(),
+                p.getPhotoUrl(), p.getLat(), p.getLng(), p.getSegmentName(),
+                p.getCleanlinessScore(), p.getUserRating(), p.getTags(),
+                p.getReportedAt());
     }
 }
