@@ -39,6 +39,9 @@ azure:
     connection-string: ${AZURE_STORAGE_CONNECTION_STRING:}
     container: trash-photos
 
+ml:
+  api-url: ${ML_API_URL:http://localhost:8000}
+
 leuvengo:
   planon:
     # Stubbed - real integration would target Planon Web Services REST API
