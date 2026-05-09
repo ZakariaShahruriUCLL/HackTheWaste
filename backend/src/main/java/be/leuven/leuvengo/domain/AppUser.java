@@ -25,6 +25,14 @@ public class AppUser {
     @Column(length = 64, unique = true)
     private String sessionToken;
 
+    /** Whether the user gave explicit data-use consent at signup. */
+    @Column(nullable = false)
+    private boolean consentGiven = false;
+
+    /** When consent was recorded — kept for audit / GDPR accountability. */
+    @Column
+    private Instant consentGivenAt;
+
     @Column(nullable = false)
     private Instant createdAt;
 
@@ -38,6 +46,10 @@ public class AppUser {
     public void setFacultyShortCode(String facultyShortCode) { this.facultyShortCode = facultyShortCode; }
     public String getSessionToken() { return sessionToken; }
     public void setSessionToken(String sessionToken) { this.sessionToken = sessionToken; }
+    public boolean isConsentGiven() { return consentGiven; }
+    public void setConsentGiven(boolean consentGiven) { this.consentGiven = consentGiven; }
+    public Instant getConsentGivenAt() { return consentGivenAt; }
+    public void setConsentGivenAt(Instant consentGivenAt) { this.consentGivenAt = consentGivenAt; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }

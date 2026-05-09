@@ -52,7 +52,7 @@ async function request<T>(
 
 export const api = {
   register: (email: string, password: string, facultyShortCode?: string) =>
-    request<AuthUser>("/auth/register", { method: "POST", json: { email, password, facultyShortCode } }),
+    request<AuthUser>("/auth/register", { method: "POST", json: { email, password, facultyShortCode, consentGiven: true } }),
   login: (email: string, password: string) =>
     request<AuthUser>("/auth/login", { method: "POST", json: { email, password } }),
   me: () => request<AuthUser>("/auth/me"),

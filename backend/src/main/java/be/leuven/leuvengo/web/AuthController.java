@@ -23,7 +23,7 @@ public class AuthController {
         this.users = users;
     }
 
-    public record RegisterRequest(String email, String password, String facultyShortCode) {}
+    public record RegisterRequest(String email, String password, String facultyShortCode, boolean consentGiven) {}
     public record LoginRequest(String email, String password) {}
     public record AuthResponse(Long id, String email, String facultyShortCode, String token) {}
 
@@ -33,15 +33,20 @@ public class AuthController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is required");
         if (req.password() == null || req.password().length() < 6)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must be at least 6 characters");
+        if (!req.consentGiven())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You must accept the data consent to create an account");
         if (users.existsByEmail(req.email().toLowerCase().trim()))
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered");
 
+        Instant now = Instant.now();
         AppUser user = new AppUser();
         user.setEmail(req.email().toLowerCase().trim());
         user.setPasswordHash(BCRYPT.encode(req.password()));
         user.setFacultyShortCode(req.facultyShortCode());
         user.setSessionToken(UUID.randomUUID().toString());
-        user.setCreatedAt(Instant.now());
+        user.setConsentGiven(true);
+        user.setConsentGivenAt(now);
+        user.setCreatedAt(now);
         users.save(user);
 
         return toResponse(user);

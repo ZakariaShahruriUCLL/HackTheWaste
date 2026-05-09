@@ -13,6 +13,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [clan, setClan] = useState<string | undefined>(undefined);
+  const [consent, setConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -114,6 +115,46 @@ export default function SignupPage() {
             )}
           </div>
 
+          {/* Data consent */}
+          <div
+            style={{
+              border: "1px solid var(--border)",
+              borderRadius: 10,
+              padding: "14px 16px",
+              background: "var(--bg-elev, #f9fafb)",
+            }}
+          >
+            <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 8 }}>
+              Data consent
+            </p>
+            <ul
+              style={{
+                fontSize: 13,
+                color: "var(--fg-soft)",
+                paddingLeft: 18,
+                marginBottom: 12,
+                lineHeight: 1.6,
+              }}
+            >
+              <li>Your <strong>email and clan</strong> are stored to personalise your experience and credit your reports to the right team.</li>
+              <li>Reports you submit (location, photos) are <strong>publicly visible</strong> in the Leuven Go feed and shared with Leuven city operations.</li>
+              <li>Submitted photos are <strong>analysed by AI</strong> (Google Gemini) to generate a cleanliness score.</li>
+              <li>Anonymised data may be used for <strong>research and predictive mapping</strong> to improve city cleanliness.</li>
+              <li>You can request deletion of your account and data at any time.</li>
+            </ul>
+            <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={(e) => setConsent(e.target.checked)}
+                style={{ marginTop: 2, flexShrink: 0, width: 16, height: 16, cursor: "pointer" }}
+              />
+              <span style={{ fontSize: 13 }}>
+                I have read and agree to the data use described above.
+              </span>
+            </label>
+          </div>
+
           {error && (
             <div
               style={{
@@ -131,7 +172,7 @@ export default function SignupPage() {
           <button
             type="submit"
             className="btn btn-primary"
-            disabled={loading}
+            disabled={loading || !consent}
             style={{ width: "100%", justifyContent: "center", marginTop: 4 }}
           >
             {loading ? "Creating account…" : "Create account"}
