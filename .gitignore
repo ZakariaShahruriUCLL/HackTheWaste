@@ -16,8 +16,6 @@ backend/.mvn
 *.iml
 *.swp
 
-.claude
-
 # infra secrets
 infra/postgresql.bicepparam
 infra/main.bicepparam
