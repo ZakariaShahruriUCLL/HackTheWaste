@@ -14,7 +14,7 @@ import type {
   WorkOrderDto,
 } from "./types";
 
-const BASE = "/api";
+const BASE = (import.meta.env.VITE_API_BASE_URL ?? "") + "/api";
 const AUTH_KEY = "auth_user";
 
 function storedToken(): string | null {

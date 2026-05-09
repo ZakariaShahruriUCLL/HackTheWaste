@@ -10,7 +10,7 @@ import {
 import { PredictiveHeatmapLayer } from "./PredictiveHeatmapLayer";
 import type { PredictPoint } from "../../api/types";
 
-const ML_URL = "/ml";
+const ML_URL = import.meta.env.VITE_ML_URL ?? "/ml";
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 function toIso(dayOffset: number, hour: number): string {

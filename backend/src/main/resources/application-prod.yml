@@ -1,24 +1,19 @@
-# Activate with: --spring.profiles.active=prod
-# Or set env var: SPRING_PROFILES_ACTIVE=prod
-#
-# Set these environment variables (or Azure App Settings) before starting:
-#   POSTGRES_HOST     — from Bicep output serverFqdn
-#   POSTGRES_DB       — leuvengo
-#   POSTGRES_USER     — leuvenadmin
-#   POSTGRES_PASSWORD — your secure password
-#   AZURE_STORAGE_CONNECTION_STRING — from the storage account deploy
-
 spring:
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST}:5432/${POSTGRES_DB:leuvengo}?sslmode=require
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
-    username: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
   h2:
     console:
       enabled: false
+
+allowed:
+  origins: ${ALLOWED_ORIGINS:https://localhost}

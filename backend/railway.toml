@@ -1,0 +1,6 @@
+[build]
+builder = "nixpacks"
+buildCommand = "./mvnw package -DskipTests"
+
+[deploy]
+startCommand = "java -jar target/*.jar"
