@@ -290,7 +290,7 @@ textarea {
 
 .map-shell {
   position: relative;
-  height: 520px;
+  min-height: 420px;
   border-radius: var(--radius);
   overflow: hidden;
   border: 1px solid var(--border);
@@ -1056,4 +1056,70 @@ textarea {
 .theme-student .app-footer {
   background: var(--bg-elev);
   border-top-color: var(--border);
+}
+
+/* Predictive heatmap controls */
+.predictive-controls {
+  padding: 10px 12px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.predictive-day-row {
+  display: flex;
+  gap: 4px;
+}
+
+.predictive-day-btn {
+  flex: 1;
+  padding: 4px 0;
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--fg-soft);
+  transition: background 0.15s, color 0.15s;
+}
+
+.predictive-day-btn.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.predictive-hour-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.predictive-hour-label {
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  min-width: 38px;
+}
+
+.predictive-slider {
+  flex: 1;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.predictive-status {
+  font-size: 12px;
+  min-width: 140px;
+  text-align: right;
+}
+
+.predictive-loading {
+  color: var(--fg-soft);
+  font-style: italic;
+}
+
+.predictive-error {
+  color: #dc2626;
 }

@@ -17,6 +17,7 @@ import numpy as np
 from datetime import datetime
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 MODEL_DIR = Path("model")
@@ -87,6 +88,13 @@ def predict_one(lat: float, lng: float, ts: datetime) -> float:
 # ---------------------------------------------------------------------------
 
 app = FastAPI(title="Leuven Trash Likelihood API", version="1.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class PredictRequest(BaseModel):

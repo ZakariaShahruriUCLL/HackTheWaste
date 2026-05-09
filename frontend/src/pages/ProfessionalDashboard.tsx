@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "../api/client";
 import { useApi } from "../hooks/useApi";
 import { HotspotMap } from "../components/Map/HotspotMap";
+import { PredictiveMap } from "../components/Map/PredictiveMap";
 import { Sparkbar } from "../components/Sparkbar";
 import { ScoreChip } from "../components/ScoreChip";
 import { StatusTag } from "../components/StatusTag";
@@ -14,6 +15,7 @@ export default function ProfessionalDashboard() {
   const segments = useApi(() => api.segments(), [], POLL);
   const orders = useApi(() => api.workOrders(), [], POLL);
   const [district, setDistrict] = useState<string>("ALL");
+  const [mapMode, setMapMode] = useState<"live" | "predictive">("predictive");
 
   const districts = useMemo(() => {
     const set = new Set<string>();
@@ -81,37 +83,55 @@ export default function ProfessionalDashboard() {
         />
       </section>
 
+      {/* ── Main map card (full width) ── */}
+      <section className="card" style={{ marginTop: 16 }}>
+        <div className="card-header">
+          <div>
+            <div className="card-title">
+              {mapMode === "live" ? "Live hotspot map" : "Predictive heatmap · Random Forest ML"}
+            </div>
+            <h3 style={{ fontSize: 18, marginTop: 4 }}>
+              {mapMode === "live"
+                ? "Where to send crews now"
+                : "Where trash will accumulate — pick a day & time"}
+            </h3>
+          </div>
+          <div className="tabbar">
+            <button
+              className={mapMode === "predictive" ? "active" : ""}
+              onClick={() => setMapMode("predictive")}
+            >
+              Predictive
+            </button>
+            <button
+              className={mapMode === "live" ? "active" : ""}
+              onClick={() => setMapMode("live")}
+            >
+              Live hotspots
+            </button>
+          </div>
+        </div>
+        {mapMode === "live" ? (
+          <HotspotMap hotspots={hotspots.data ?? []} height={560} />
+        ) : (
+          <PredictiveMap height={560} />
+        )}
+      </section>
+
+      {/* ── Secondary row: trend + top clusters ── */}
       <section
         className="grid"
-        style={{
-          marginTop: 16,
-          gridTemplateColumns: "minmax(0, 1.6fr) minmax(0, 1fr)",
-        }}
+        style={{ marginTop: 16, gridTemplateColumns: "minmax(0, 1.6fr) minmax(0, 1fr)" }}
       >
         <div className="card">
           <div className="card-header">
-            <div>
-              <div className="card-title">Hotspot heatmap</div>
-              <h3 style={{ fontSize: 18, marginTop: 4 }}>
-                Where to send crews next
-              </h3>
-            </div>
-            <span className="muted" style={{ fontSize: 12 }}>
-              {hotspots.data?.length ?? 0} clusters
-            </span>
+            <div className="card-title">Reports trend (7d)</div>
+            <span className="muted" style={{ fontSize: 12 }}>ingested signals</span>
           </div>
-          <HotspotMap hotspots={hotspots.data ?? []} />
+          <Sparkbar data={stats.data?.reportsLast7Days ?? []} />
         </div>
 
         <div className="card">
-          <div className="card-header">
-            <div className="card-title">Reports trend (7d)</div>
-            <span className="muted" style={{ fontSize: 12 }}>
-              ingested signals
-            </span>
-          </div>
-          <Sparkbar data={stats.data?.reportsLast7Days ?? []} />
-          <div className="divider" />
           <div className="card-title">Top clusters</div>
           <div className="stack" style={{ marginTop: 8 }}>
             {(stats.data?.topHotspots ?? []).slice(0, 5).map((h) => (

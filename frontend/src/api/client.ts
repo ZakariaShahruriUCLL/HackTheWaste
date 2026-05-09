@@ -6,6 +6,7 @@ import type {
   FeedPage,
   HotspotDto,
   LeaderboardEntry,
+  PredictPoint,
   ReportDto,
   RewardItemDto,
   StatsDto,
@@ -80,5 +81,10 @@ export const api = {
     const params = new URLSearchParams({ page: String(page), size: String(size) });
     if (clan) params.set("clan", clan);
     return request<FeedPage>(`/feed?${params}`);
+  },
+
+  predictGrid: (at: string, steps = 30) => {
+    const params = new URLSearchParams({ at, steps: String(steps) });
+    return request<PredictPoint[]>(`/predictions/grid?${params}`);
   },
 };

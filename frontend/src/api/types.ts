@@ -141,6 +141,12 @@ export interface AuthUser {
   token: string;
 }
 
+export interface PredictPoint {
+  lat: number;
+  lng: number;
+  likelihood: number;
+}
+
 export interface CreateReportPayload {
   lat: number;
   lng: number;

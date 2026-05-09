@@ -49,7 +49,7 @@ def haversine_km(lat1, lng1, lat2, lng2):
 
 
 def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
-    ts = pd.to_datetime(df["time"])
+    ts = pd.to_datetime(df["time"], utc=True).dt.tz_convert("Europe/Brussels")
 
     df = df.copy()
     df["hour"]       = ts.dt.hour
@@ -78,14 +78,17 @@ FEATURE_COLS = (
 
 
 def main():
-    csv_path = Path("data/leuven_trash.csv")
-    if not csv_path.exists():
+    for candidate in ["data/leuven_trash_likelihood.csv", "data/leuven_trash.csv"]:
+        if Path(candidate).exists():
+            csv_path = Path(candidate)
+            break
+    else:
         raise FileNotFoundError(
-            f"{csv_path} not found — run generate_data.py first "
-            "or place your real CSV there."
+            "No CSV found in data/ — expected leuven_trash_likelihood.csv or leuven_trash.csv"
         )
 
     df = pd.read_csv(csv_path)
+    df.columns = [c.lower() for c in df.columns]
     print(f"Loaded {len(df)} rows from {csv_path}")
 
     df = engineer_features(df)
