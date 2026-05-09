@@ -20,6 +20,7 @@ backend/.mvn
 
 # infra secrets
 infra/postgresql.bicepparam
+infra/main.bicepparam
 
 # local secrets — never commit
 backend/src/main/resources/application-local.yml

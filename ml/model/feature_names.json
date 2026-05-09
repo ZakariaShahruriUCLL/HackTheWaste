@@ -1,0 +1,19 @@
+[
+  "latitude",
+  "longitude",
+  "hour",
+  "dow",
+  "month",
+  "is_weekend",
+  "is_night",
+  "is_rush",
+  "dist_center",
+  "dist_oude_markt",
+  "dist_station",
+  "dist_bondgenotenlaan",
+  "dist_ku_leuven",
+  "dist_stadspark",
+  "dist_naamsestraat",
+  "dist_diestsestraat",
+  "dist_ladeuzeplein"
+]

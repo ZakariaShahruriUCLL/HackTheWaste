@@ -1,4 +1,5 @@
 .venv/
-model/
+# model files are committed so Railway can deploy without retraining
+!model/
 __pycache__/
 *.pyc
