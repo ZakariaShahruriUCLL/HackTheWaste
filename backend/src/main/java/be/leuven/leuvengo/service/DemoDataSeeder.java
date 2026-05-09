@@ -71,56 +71,46 @@ public class DemoDataSeeder {
                 faculties.count(), segments.count(), rewards.count(), reports.count());
     }
 
-    /**
-     * Teams from the 24 Uur van Leuven (24 Hours of Leuven) student competition.
-     * Territories are laid out on a 7x3 grid roughly covering Leuven's centre + campuses
-     * so the student dashboard map shows a clean tiling rather than overlaps.
-     */
     private List<Faculty> seedFaculties() {
-        String[][] data = {
-                {"Apolloon", "APO", "#1d4ed8", "🏃"},
-                {"Ekonomika", "EKO", "#10b981", "📊"},
-                {"LBK", "LBK", "#65a30d", "🌱"},
-                {"VTK", "VTK", "#dc2626", "⚙️"},
-                {"Wina", "WIN", "#ec4899", "🧮"},
-                {"UCLL", "UCL", "#2563eb", "🎓"},
-                {"Psychokring", "PSY", "#9333ea", "🧠"},
-                {"Thomas Morus", "TMO", "#ca8a04", "📜"},
-                {"Atmosphere", "ATM", "#0ea5e9", "🌍"},
-                {"Runner's High", "RNH", "#f97316", "💨"},
-                {"Industria", "IND", "#1e3a8a", "🏭"},
-                {"Farmaceutica", "FAR", "#14b8a6", "💊"},
-                {"VRG-Crimen", "VRG", "#991b1b", "⚖️"},
-                {"Politika", "POL", "#0f172a", "🗳"},
-                {"Run for Specials", "RFS", "#f59e0b", "🌟"},
-                {"HMV", "HMV", "#a78bfa", "🎵"},
-                {"Pedal", "PED", "#0d9488", "🚴"},
-                {"Lerkeveld", "LRK", "#78350f", "🏠"},
-                {"ESN", "ESN", "#3b82f6", "🌐"},
-                {"Project Unseen", "PUS", "#475569", "👁"},
-                {"Humasol", "HUM", "#eab308", "☀️"}
-        };
-        int[] members = {1200, 2400, 800, 2800, 1100, 1900, 1600, 700, 900, 600, 2200,
-                1400, 1300, 1000, 500, 750, 850, 1150, 1500, 950, 1300};
+        // 5 lat bands × irregular lng splits = 21 contiguous blocky territories
+        Object[][] data = {
+            // --- North band (50.890–50.898) ---
+            {"Project Unseen",   "PUS", "#475569", "👁",   950, polygon(50.890,4.670, 50.898,4.670, 50.898,4.697, 50.890,4.697)},
+            {"LBK",              "LBK", "#65a30d", "🌱",   800, polygon(50.890,4.697, 50.898,4.697, 50.898,4.710, 50.890,4.710)},
+            {"ESN",              "ESN", "#3b82f6", "🌐",  1500, polygon(50.890,4.710, 50.898,4.710, 50.898,4.730, 50.890,4.730)},
 
-        int cols = 7;
-        double baseLat = 50.860;
-        double baseLng = 4.668;
-        double tileLat = 0.010;
-        double tileLng = 0.0085;
+            // --- Upper band (50.882–50.890) ---
+            {"Run for Specials", "RFS", "#f59e0b", "🌟",   500, polygon(50.882,4.670, 50.890,4.670, 50.890,4.684, 50.882,4.684)},
+            {"Apolloon",         "APO", "#1d4ed8", "🏃",  1200, polygon(50.882,4.684, 50.890,4.684, 50.890,4.699, 50.882,4.699)},
+            {"Industria",        "IND", "#1e3a8a", "🏭",  2200, polygon(50.882,4.699, 50.890,4.699, 50.890,4.710, 50.882,4.710)},
+            {"Atmosphere",       "ATM", "#0ea5e9", "🌍",   900, polygon(50.882,4.710, 50.890,4.710, 50.890,4.720, 50.882,4.720)},
+            {"Humasol",          "HUM", "#eab308", "☀️",  1300, polygon(50.882,4.720, 50.890,4.720, 50.890,4.730, 50.882,4.730)},
+
+            // --- Middle band (50.874–50.882) ---
+            {"Psychokring",      "PSY", "#9333ea", "🧠",  1600, polygon(50.874,4.670, 50.882,4.670, 50.882,4.684, 50.874,4.684)},
+            {"Ekonomika",        "EKO", "#10b981", "📊",  2400, polygon(50.874,4.684, 50.882,4.684, 50.882,4.699, 50.874,4.699)},
+            {"Thomas Morus",     "TMO", "#ca8a04", "📜",   700, polygon(50.874,4.699, 50.882,4.699, 50.882,4.708, 50.874,4.708)},
+            {"VRG-Crimen",       "VRG", "#991b1b", "⚖️",  1300, polygon(50.874,4.708, 50.882,4.708, 50.882,4.719, 50.874,4.719)},
+            {"UCLL",             "UCL", "#2563eb", "🎓",  1900, polygon(50.874,4.719, 50.882,4.719, 50.882,4.730, 50.874,4.730)},
+
+            // --- Lower band (50.866–50.874) ---
+            {"Wina",             "WIN", "#ec4899", "🧮",  1100, polygon(50.866,4.670, 50.874,4.670, 50.874,4.684, 50.866,4.684)},
+            {"Lerkeveld",        "LRK", "#78350f", "🏠",  1150, polygon(50.866,4.684, 50.874,4.684, 50.874,4.699, 50.866,4.699)},
+            {"VTK",              "VTK", "#dc2626", "⚙️",  2800, polygon(50.866,4.699, 50.874,4.699, 50.874,4.708, 50.866,4.708)},
+            {"HMV",              "HMV", "#a78bfa", "🎵",   750, polygon(50.866,4.708, 50.874,4.708, 50.874,4.719, 50.866,4.719)},
+            {"Pedal",            "PED", "#0d9488", "🚴",   850, polygon(50.866,4.719, 50.874,4.719, 50.874,4.730, 50.866,4.730)},
+
+            // --- South band (50.850–50.866) ---
+            {"Farmaceutica",     "FAR", "#14b8a6", "💊",  1400, polygon(50.850,4.670, 50.866,4.670, 50.866,4.693, 50.850,4.693)},
+            {"Politika",         "POL", "#0f172a", "🗳️", 1000, polygon(50.850,4.693, 50.866,4.693, 50.866,4.712, 50.850,4.712)},
+            {"Runner's High",    "RNH", "#f97316", "💨",   600, polygon(50.850,4.712, 50.866,4.712, 50.866,4.730, 50.850,4.730)},
+        };
 
         List<Faculty> list = new ArrayList<>();
-        for (int i = 0; i < data.length; i++) {
-            int col = i % cols;
-            int row = i / cols;
-            double minLat = baseLat + row * tileLat;
-            double maxLat = minLat + tileLat;
-            double minLng = baseLng + col * tileLng;
-            double maxLng = minLng + tileLng;
+        for (Object[] row : data) {
             list.add(faculty(
-                    data[i][0], data[i][1], data[i][2], data[i][3],
-                    members[i], 0,
-                    polygon(minLat, minLng, minLat, maxLng, maxLat, maxLng, maxLat, minLng)
+                    (String) row[0], (String) row[1], (String) row[2], (String) row[3],
+                    (int) row[4], 0, (String) row[5]
             ));
         }
         return faculties.saveAll(list);
@@ -144,17 +134,17 @@ public class DemoDataSeeder {
         facs.forEach(f -> by.put(f.getShortCode(), f));
 
         segments.saveAll(List.of(
-                segment("Oude Markt", "Centrum", 50.8780, 4.7010, by.get("APO")),
-                segment("Naamsestraat", "Centrum", 50.8762, 4.7008, by.get("EKO")),
-                segment("Tiensestraat", "Centrum", 50.8800, 4.7080, by.get("VTK")),
-                segment("Vaartkom", "Noord", 50.8870, 4.7050, by.get("IND")),
-                segment("Heverlee Campus", "Heverlee", 50.8635, 4.6770, by.get("WIN")),
-                segment("Gasthuisberg", "Zuid", 50.8525, 4.6720, by.get("FAR")),
-                segment("Sint-Maartensdal", "Centrum", 50.8830, 4.6960, by.get("UCL")),
-                segment("Bondgenotenlaan", "Centrum", 50.8810, 4.7050, by.get("ESN")),
-                segment("Parkstraat", "Heverlee", 50.8720, 4.6960, by.get("PSY")),
-                segment("Diestsestraat", "Centrum", 50.8830, 4.7060, by.get("LBK")),
-                segment("Brusselsestraat", "Centrum", 50.8775, 4.6960, by.get("TMO")),
+                segment("Oude Markt",        "Centrum",   50.8780, 4.7010, by.get("APO")),
+                segment("Naamsestraat",      "Centrum",   50.8762, 4.7008, by.get("EKO")),
+                segment("Tiensestraat",      "Centrum",   50.8800, 4.7080, by.get("VTK")),
+                segment("Vaartkom",          "Noord",     50.8870, 4.7050, by.get("IND")),
+                segment("Heverlee Campus",   "Heverlee",  50.8635, 4.6770, by.get("WIN")),
+                segment("Gasthuisberg",      "Zuid",      50.8525, 4.6720, by.get("FAR")),
+                segment("Sint-Maartensdal",  "Centrum",   50.8830, 4.6960, by.get("UCL")),
+                segment("Bondgenotenlaan",   "Centrum",   50.8810, 4.7050, by.get("ESN")),
+                segment("Parkstraat",        "Heverlee",  50.8720, 4.6960, by.get("PSY")),
+                segment("Diestsestraat",     "Centrum",   50.8830, 4.7060, by.get("LBK")),
+                segment("Brusselsestraat",   "Centrum",   50.8775, 4.6960, by.get("TMO")),
                 segment("Kessel-Lo Station", "Kessel-Lo", 50.8830, 4.7240, by.get("PED"))
         ));
     }
@@ -207,17 +197,15 @@ public class DemoDataSeeder {
 
     private void seedReports() {
         Random rnd = new Random(42);
-        // Three real-feeling clusters: Oude Markt (party), Naamsestraat (student housing), Vaartkom
-        seedCluster(rnd, 50.8780, 4.7010, 7, 1, "APO", "litter,glass,overflow");
-        seedCluster(rnd, 50.8762, 4.7008, 4, 2, "EKO", "litter,packaging");
-        seedCluster(rnd, 50.8870, 4.7050, 3, 2, "IND", "graffiti,litter");
-        seedCluster(rnd, 50.8635, 4.6770, 2, 4, "WIN", "leaves");
-        seedCluster(rnd, 50.8830, 4.7240, 5, 1, "PED", "overflow,packaging");
 
-        // Backdate the timestamps so the trend chart has shape.
+        seedCluster(rnd, 50.8780, 4.7010, 15, 4, "APO", "litter,glass,party_night");
+        seedCluster(rnd, 50.8740, 4.7000, 10, 3, "EKO", "packaging,takeaway");
+        seedCluster(rnd, 50.8815, 4.7155,  8, 3, "PED", "overflow,coffee_cups");
+        seedCluster(rnd, 50.8870, 4.7050,  6, 2, "IND", "packaging,bottles");
+        seedCluster(rnd, 50.8635, 4.6770,  5, 2, "WIN", "food_waste");
+
         List<Report> all = reports.findAll();
-        for (int i = 0; i < all.size(); i++) {
-            Report r = all.get(i);
+        for (Report r : all) {
             r.setReportedAt(Instant.now().minus(rnd.nextInt(96), ChronoUnit.HOURS));
             reports.save(r);
         }
@@ -226,13 +214,14 @@ public class DemoDataSeeder {
     private void seedCluster(Random rnd, double lat, double lng, int n,
                              int baseRating, String facCode, String tags) {
         for (int i = 0; i < n; i++) {
-            double dLat = (rnd.nextDouble() - 0.5) * 0.0006; // ~30m
-            double dLng = (rnd.nextDouble() - 0.5) * 0.0006;
-            int rating = Math.max(0, Math.min(5, baseRating + rnd.nextInt(2)));
+            double dLat = rnd.nextGaussian() * 0.0008;
+            double dLng = rnd.nextGaussian() * 0.0008;
+            int rating = Math.max(1, Math.min(5, baseRating + (rnd.nextInt(3) - 1)));
             reportService.submit(new ReportService.Submission(
                     lat + dLat, lng + dLng, rating,
-                    "Demo report - " + tags, null, tags,
-                    facCode, "seed-" + facCode + "-" + i));
+                    "Predictive Analysis: High probability zone (" + tags + ")",
+                    null, tags,
+                    facCode, "ai-seed-" + facCode + "-" + i + "-" + rnd.nextInt(1000)));
         }
     }
 
@@ -250,7 +239,7 @@ public class DemoDataSeeder {
             {"lena.w",    "lena.w@student.kuleuven.be",    "WIN", 50.8635, 4.6770, "Heverlee Campus",   4, 78, "leaves",            "https://picsum.photos/seed/leaves4/600/600", 45},
             {"remi.b",    "remi.b@student.kuleuven.be",    "IND", 50.8870, 4.7050, "Vaartkom",          2, 35, "graffiti,litter",   "https://picsum.photos/seed/urban5/600/600",  52},
             {"noor.a",    "noor.a@student.kuleuven.be",    "FAR", 50.8525, 4.6720, "Gasthuisberg",      3, 61, "packaging",         "https://picsum.photos/seed/street6/600/600", 60},
-            {"pieter.j",  "pieter.j@student.kuleuven.be",  "PSY", 50.8720, 4.6960, "Parkstraat",        0, 5,  "vomit,cigarettes",  "https://picsum.photos/seed/mess7/600/600",   70},
+            {"pieter.j",  "pieter.j@student.kuleuven.be",  "PSY", 50.8720, 4.6960, "Parkstraat",        0,  5, "vomit,cigarettes",  "https://picsum.photos/seed/mess7/600/600",   70},
             {"anouk.s",   "anouk.s@student.kuleuven.be",   "LBK", 50.8830, 4.7060, "Diestsestraat",     3, 58, "litter",            "https://picsum.photos/seed/road8/600/600",   78},
             {"jens.m",    "jens.m@student.kuleuven.be",    "ESN", 50.8810, 4.7050, "Bondgenotenlaan",   4, 82, "leaves,packaging",  "https://picsum.photos/seed/path9/600/600",   85},
             {"elisa.k",   "elisa.k@student.kuleuven.be",   "PED", 50.8830, 4.7240, "Kessel-Lo Station", 1, 20, "overflow",          "https://picsum.photos/seed/cycle10/600/600", 93},

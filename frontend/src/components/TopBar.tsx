@@ -22,9 +22,6 @@ export function TopBar() {
             <NavLink to="/pro">For city teams</NavLink>
             <NavLink to="/student">For students</NavLink>
             <NavLink to="/feed">Feed</NavLink>
-            <NavLink to="/report" className="btn btn-primary btn-sm">
-              Report a spot
-            </NavLink>
           </nav>
         )}
 
@@ -43,7 +40,6 @@ export function TopBar() {
             <NavLink to="/market">Rewards</NavLink>
             <NavLink to="/feed">Feed</NavLink>
             <NavLink to="/pro" className="btn btn-ghost btn-sm">Switch view</NavLink>
-            <NavLink to="/report" className="btn btn-accent btn-sm">+ Report</NavLink>
           </nav>
         )}
 

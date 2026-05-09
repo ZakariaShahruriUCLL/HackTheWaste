@@ -2,7 +2,6 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
-import ReportPage from "./pages/ReportPage";
 import MarketplacePage from "./pages/MarketplacePage";
 import OperationsPage from "./pages/OperationsPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
@@ -19,8 +18,7 @@ export default function App() {
   const themeClass = path.startsWith("/pro")
     ? "theme-pro"
     : path.startsWith("/student") ||
-        path.startsWith("/report") ||
-        path.startsWith("/market") ||
+path.startsWith("/market") ||
         path.startsWith("/leaderboard")
       ? "theme-student"
       : "";
@@ -36,7 +34,6 @@ export default function App() {
             <Route path="/pro/operations" element={<ProtectedRoute><OperationsPage /></ProtectedRoute>} />
             <Route path="/student" element={<StudentDashboard />} />
             <Route path="/student/leaderboard" element={<LeaderboardPage />} />
-            <Route path="/report" element={<ProtectedRoute><ReportPage /></ProtectedRoute>} />
             <Route path="/market" element={<MarketplacePage />} />
             <Route path="/feed" element={<FeedPage />} />
             <Route path="/login" element={<LoginPage />} />
