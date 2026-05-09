@@ -31,7 +31,7 @@ export function TopBar() {
           <nav className="nav">
             <NavLink to="/pro" end>Overview</NavLink>
             <NavLink to="/pro/operations">Operations</NavLink>
-            <NavLink to="/" className="btn btn-ghost btn-sm">Switch view</NavLink>
+            <NavLink to="/student" className="btn btn-ghost btn-sm">Switch view</NavLink>
           </nav>
         )}
 
@@ -40,7 +40,7 @@ export function TopBar() {
             <NavLink to="/student" end>Map</NavLink>
             <NavLink to="/student/leaderboard">Clans</NavLink>
             <NavLink to="/market">Rewards</NavLink>
-            <NavLink to="/" className="btn btn-ghost btn-sm">Switch view</NavLink>
+            <NavLink to="/pro" className="btn btn-ghost btn-sm">Switch view</NavLink>
             <NavLink to="/report" className="btn btn-accent btn-sm">+ Report</NavLink>
           </nav>
         )}

@@ -119,12 +119,15 @@ textarea {
   align-items: center;
 }
 
-.nav a {
+.nav a,
+.nav button {
   padding: 8px 14px;
   border-radius: 999px;
   font-weight: 500;
   font-size: 14px;
   color: var(--fg-soft);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .nav a.active,
@@ -924,6 +927,8 @@ textarea {
   gap: 6px;
   padding-left: 12px;
   border-left: 1px solid var(--border);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .theme-pro .topbar-auth {
