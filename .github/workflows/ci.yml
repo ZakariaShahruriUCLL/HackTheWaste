@@ -39,7 +39,7 @@ jobs:
           java-version: 21
           distribution: temurin
           cache: maven
-      - run: ./mvnw package -DskipTests
+      - run: mvn package -DskipTests
 
   ml:
     name: ML syntax check
