@@ -21,17 +21,24 @@ public class GeminiService {
     private static final Logger log = LoggerFactory.getLogger(GeminiService.class);
 
     private static final String ENDPOINT =
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=";
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=";
 
     private static final String PROMPT =
-            "Analyze this image of waste/trash in a public urban space in Leuven, Belgium. "
-            + "Rate the cleanliness on a scale of 0 to 100 where 100 = perfectly clean (no litter at all) "
-            + "and 0 = completely covered in hazardous or overwhelming waste. "
+            "You are a fraud-detecting cleanliness inspector for a city reporting app. "
+            + "First, decide if this photo is FAKE. Mark it fake if ANY of these apply: "
+            + "(1) the image appears to be a photo of a screen, monitor, TV, or phone display "
+            + "(look for screen glare, pixel grids, Moiré patterns, device bezels, or curved display edges); "
+            + "(2) the image looks like a stock photo, watermarked image, or search-engine result; "
+            + "(3) the image shows an indoor scene with no outdoor urban context; "
+            + "(4) there is no real-world depth, lighting, or perspective — it looks flat or digitally generated. "
+            + "If the photo is NOT fake, rate the cleanliness of the outdoor urban space on a scale of 0 to 100 "
+            + "where 100 = perfectly clean and 0 = completely covered in hazardous waste. "
             + "Respond with ONLY valid JSON — no markdown fences, no prose: "
-            + "{\"score\": <0-100>, \"description\": \"<one short sentence>\", "
+            + "{\"fake\": <true|false>, \"reason\": \"<one short sentence why it is fake, or null if genuine>\", "
+            + "\"score\": <0-100 or null if fake>, \"description\": \"<one short sentence or null if fake>\", "
             + "\"tags\": [\"<tag1>\", \"<tag2>\"]}. "
             + "Tags must name visible waste types such as plastic, glass, paper, food_waste, cigarettes. "
-            + "Include at most 3 tags.";
+            + "Include at most 3 tags. If fake, tags may be empty.";
 
     @Value("${gemini.api-key:}")
     private String apiKey;
@@ -42,10 +49,12 @@ public class GeminiService {
     @Value("${twilio.auth-token:}")
     private String twilioAuthToken;
 
-    private final HttpClient http = HttpClient.newHttpClient();
+    private final HttpClient http = HttpClient.newBuilder()
+            .followRedirects(HttpClient.Redirect.NORMAL)
+            .build();
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public record ScoreResult(int score, String description, List<String> tags) {}
+    public record ScoreResult(boolean fake, String fakeReason, int score, String description, List<String> tags) {}
 
     /**
      * Downloads the image at {@code imageUrl}, sends it to Gemini 1.5 Flash,
@@ -55,18 +64,20 @@ public class GeminiService {
     public ScoreResult scorePhoto(String imageUrl) {
         if (apiKey == null || apiKey.isBlank()) {
             log.warn("GEMINI_API_KEY not configured — returning fallback score");
-            return new ScoreResult(50, "AI scoring unavailable", List.of());
+            return new ScoreResult(false, null, 50, "AI scoring unavailable", List.of());
         }
         try {
-            byte[] bytes = downloadImage(imageUrl);
-            return callGemini(bytes);
+            ImageData image = downloadImage(imageUrl);
+            return callGemini(image);
         } catch (Exception e) {
             log.error("Gemini scoring failed for {}: {}", imageUrl, e.getMessage());
-            return new ScoreResult(50, "scoring error", List.of());
+            return new ScoreResult(false, null, 50, "scoring error", List.of());
         }
     }
 
-    private byte[] downloadImage(String url) throws Exception {
+    private record ImageData(byte[] bytes, String mimeType) {}
+
+    private ImageData downloadImage(String url) throws Exception {
         HttpRequest.Builder builder = HttpRequest.newBuilder().uri(URI.create(url)).GET();
         // Twilio media URLs require Basic auth with account credentials
         if (url.contains("api.twilio.com") && !twilioAccountSid.isBlank()) {
@@ -78,16 +89,20 @@ public class GeminiService {
         if (resp.statusCode() >= 300) {
             throw new RuntimeException("Image download failed: HTTP " + resp.statusCode());
         }
-        return resp.body();
+        String contentType = resp.headers().firstValue("Content-Type")
+                .orElse("image/jpeg")
+                .split(";")[0].trim();
+        log.info("Downloaded image: {} bytes, type={}", resp.body().length, contentType);
+        return new ImageData(resp.body(), contentType);
     }
 
-    private ScoreResult callGemini(byte[] imageBytes) throws Exception {
-        String base64 = Base64.getEncoder().encodeToString(imageBytes);
+    private ScoreResult callGemini(ImageData image) throws Exception {
+        String base64 = Base64.getEncoder().encodeToString(image.bytes());
         Map<String, Object> body = Map.of(
                 "contents", List.of(Map.of(
                         "parts", List.of(
                                 Map.of("text", PROMPT),
-                                Map.of("inlineData", Map.of("mimeType", "image/jpeg", "data", base64))
+                                Map.of("inlineData", Map.of("mimeType", image.mimeType(), "data", base64))
                         )
                 ))
         );
@@ -112,8 +127,10 @@ public class GeminiService {
         }
 
         JsonNode result = mapper.readTree(text);
-        int score = Math.max(0, Math.min(100, result.path("score").asInt(50)));
-        String description = result.path("description").asText("no description");
+        boolean fake = result.path("fake").asBoolean(false);
+        String fakeReason = result.path("reason").isNull() ? null : result.path("reason").asText(null);
+        int score = fake ? 0 : Math.max(0, Math.min(100, result.path("score").asInt(50)));
+        String description = result.path("description").isNull() ? null : result.path("description").asText(null);
 
         List<String> tags = List.of();
         if (result.has("tags") && result.get("tags").isArray()) {
@@ -122,7 +139,8 @@ public class GeminiService {
                     mapper.getTypeFactory().constructCollectionType(List.class, String.class));
         }
 
-        log.info("Gemini result: score={} description='{}' tags={}", score, description, tags);
-        return new ScoreResult(score, description, tags);
+        log.info("Gemini result: fake={} reason='{}' score={} description='{}' tags={}",
+                fake, fakeReason, score, description, tags);
+        return new ScoreResult(fake, fakeReason, score, description, tags);
     }
 }

@@ -4,6 +4,7 @@ import be.leuven.leuvengo.domain.PendingReport;
 import be.leuven.leuvengo.domain.TrashPhoto;
 import be.leuven.leuvengo.repository.PendingReportRepository;
 import be.leuven.leuvengo.repository.TrashPhotoRepository;
+import be.leuven.leuvengo.service.BlobStorageService;
 import be.leuven.leuvengo.service.GeminiService;
 import be.leuven.leuvengo.service.ReportService;
 import com.twilio.twiml.MessagingResponse;
@@ -40,15 +41,18 @@ public class WhatsAppController {
     private final TrashPhotoRepository photos;
     private final ReportService reportService;
     private final GeminiService gemini;
+    private final BlobStorageService blobStorage;
 
     public WhatsAppController(PendingReportRepository pending,
                               TrashPhotoRepository photos,
                               ReportService reportService,
-                              GeminiService gemini) {
+                              GeminiService gemini,
+                              BlobStorageService blobStorage) {
         this.pending = pending;
         this.photos = photos;
         this.reportService = reportService;
         this.gemini = gemini;
+        this.blobStorage = blobStorage;
     }
 
     @PostMapping(value = "/webhook", produces = MediaType.APPLICATION_XML_VALUE)
@@ -98,12 +102,27 @@ public class WhatsAppController {
 
         PendingReport pr = latest.get();
 
-        // AI cleanliness scoring via Gemini 1.5 Flash
+        // AI cleanliness scoring + fraud detection via Gemini
         GeminiService.ScoreResult ai = gemini.scorePhoto(mediaUrl);
+
+        if (ai.fake()) {
+            log.warn("Fake photo rejected from {}: {}", from, ai.fakeReason());
+            String reason = ai.fakeReason() != null ? ai.fakeReason() : "the image does not appear to be a real photo taken on location";
+            return reply("🚫 Photo rejected\n\n"
+                    + "Our AI detected that this doesn't look like a genuine on-site photo: "
+                    + reason + ".\n\n"
+                    + "Please take a real photo of the litter where you are standing and send it again.");
+        }
+
         int cleanlinessScore = ai.score();          // 0-100 (100 = clean)
         int rating = toRating(cleanlinessScore);    // 1-5 dirtiness for pipeline
 
-        pr.setMediaUrl(mediaUrl);
+        // Upload to Azure Blob Storage; fall back to Twilio URL if upload fails
+        String pseudoId = pseudoIdFor(from);
+        String photoUrl = blobStorage.uploadFromTwilio(mediaUrl, "image/jpeg", pseudoId)
+                .orElse(mediaUrl);
+
+        pr.setMediaUrl(photoUrl);
         pr.setCleanlinessScore(rating);
         pr.setCompleted(true);
         pending.save(pr);
@@ -113,10 +132,10 @@ public class WhatsAppController {
             reportService.submit(new ReportService.Submission(
                     pr.getLat(), pr.getLng(), rating,
                     "WhatsApp report",
-                    mediaUrl,
+                    photoUrl,
                     ai.tags().isEmpty() ? null : String.join(",", ai.tags()),
                     null,
-                    pseudoIdFor(from)
+                    pseudoId
             ));
         } catch (Exception ex) {
             log.warn("Failed to ingest WhatsApp report into hotspot pipeline", ex);
@@ -126,7 +145,7 @@ public class WhatsAppController {
         try {
             TrashPhoto photo = new TrashPhoto();
             photo.setUsername("WhatsApp user");
-            photo.setPhotoUrl(mediaUrl);
+            photo.setPhotoUrl(photoUrl);
             photo.setLat(pr.getLat());
             photo.setLng(pr.getLng());
             photo.setCleanlinessScore(cleanlinessScore);
@@ -159,7 +178,7 @@ public class WhatsAppController {
         StringBuilder sb = new StringBuilder();
         sb.append("🤖 AI Analysis complete!\n\n");
         sb.append("Cleanliness score: ").append(score).append("/100 — ").append(label).append('\n');
-        if (!description.isBlank() && !"no description".equals(description)
+        if (description != null && !description.isBlank()
                 && !"AI scoring unavailable".equals(description)
                 && !"scoring error".equals(description)) {
             sb.append("Assessment: ").append(description).append('\n');
